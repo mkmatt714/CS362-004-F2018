@@ -1,1 +1,1 @@
-Michael Matthews matthewm@onid.oregonstate.edu
+Changed for assignment 2

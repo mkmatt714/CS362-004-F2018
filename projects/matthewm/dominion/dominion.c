@@ -643,31 +643,14 @@ int getCost(int cardNumber)
   return -1;
 }
 
-int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState *state, int handPos, int *bonus)
+// Card Effect Function for an Adventurer card
+int callAdventurer(struct gameState *state, int currentPlayer, int *temphand)
 {
-  int i;
-  int j;
-  int k;
-  int x;
-  int index;
-  int currentPlayer = whoseTurn(state);
-  int nextPlayer = currentPlayer + 1;
-
-  int tributeRevealedCards[2] = {-1, -1};
-  int temphand[MAX_HAND];// moved above the if statement
-  int drawntreasure=0;
-  int cardDrawn;
-  int z = 0;// this is the counter for the temp hand
-  if (nextPlayer > (state->numPlayers - 1)){
-    nextPlayer = 0;
-  }
+	int drawntreasure=0;
+	int cardDrawn;
+	int z = 0;// this is the counter for the temp hand
   
-	
-  //uses switch to select card and perform actions
-  switch( card ) 
-    {
-    case adventurer:
-      while(drawntreasure<2){
+	  while(drawntreasure<2){
 	if (state->deckCount[currentPlayer] <1){//if the deck is empty we need to shuffle discard and add to deck
 	  shuffle(currentPlayer, state);
 	}
@@ -681,11 +664,149 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 	  z++;
 	}
       }
-      while(z-1>=0){
+      while(z-1>=1){
 	state->discard[currentPlayer][state->discardCount[currentPlayer]++]=temphand[z-1]; // discard all cards in play that have been drawn
 	z=z-1;
       }
       return 0;
+			
+}
+
+// Card Effect Function for a Smithy card
+int callSmithy(struct gameState *state, int currentPlayer, int *temphand, int handPos)
+{
+	int i;
+	currentPlayer = 1;
+	
+	  //+3 Cards
+      for (i = 0; i < 3; i++)
+	{
+	  drawCard(currentPlayer, state);
+	}
+			
+      //discard card from hand
+      discardCard(handPos, currentPlayer, state, 0);
+      return 0;
+}
+
+// Card Effect Function for a Great Hall card
+int callGreatHall(struct gameState *state, int currentPlayer, int *temphand, int handPos)
+{
+	//+1 Card
+      drawCard(currentPlayer, state);
+			
+      //+1 Actions
+      state->numActions++;
+	  
+	  //+1 Card
+      drawCard(currentPlayer, state);
+			
+      //discard card from hand
+      discardCard(handPos, currentPlayer, state, 0);
+      return 0;
+}
+
+// Card Effect Function for a Village card
+int callVillage(struct gameState *state, int currentPlayer, int *temphand, int handPos)
+{
+	//+1 Card
+      drawCard(currentPlayer, state);
+			
+      //+2 Actions
+      state->numActions = state->numActions + 1;
+			
+      //discard played card from hand
+      discardCard(handPos, currentPlayer, state, 0);
+      return 0;
+}
+
+// Card Effect Function for a Gardens card
+int callGardens(struct gameState *state, int currentPlayer, int *temphand)
+{
+	 return -1;
+}
+
+int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState *state, int handPos, int *bonus)
+{
+  int i;
+  int j;
+  int k;
+  int x;
+  int index;
+  int currentPlayer = whoseTurn(state);
+  int nextPlayer = currentPlayer + 1;
+
+  int tributeRevealedCards[2] = {-1, -1};
+  int temphand[MAX_HAND];// moved above the if statement
+  
+  // Removed due to refactoring
+  //int drawntreasure=0;
+  //int cardDrawn;
+  
+  // Removed due to refactoring
+  //int z = 0;// this is the counter for the temp hand
+  //
+  
+  if (nextPlayer > (state->numPlayers - 1)){
+    nextPlayer = 0;
+  }
+
+  // Refactored call for adventurer
+  if (card == adventurer)
+  {
+	  callAdventurer(state, currentPlayer, temphand);
+  }
+  
+  // Refactored call for smithy
+  if (card == smithy)
+  {
+	  callSmithy(state, currentPlayer, temphand, handPos);
+  }
+  
+  // Refactored call for great_hall
+  if (card == great_hall)
+  {
+	  callGreatHall(state, currentPlayer, temphand, handPos);
+  }
+  
+  // Refactored call for village
+  if (card == village)
+  {
+	  callVillage(state, currentPlayer, temphand, handPos);
+  }
+  
+  // Refactored call for gardens
+  if (card == gardens)
+  {
+	  callGardens(state, currentPlayer, temphand);
+  }
+  
+  
+	
+  //uses switch to select card and perform actions
+  switch( card ) 
+    {
+	// Commenting out the Adventurer card effect because of refactoring the effect outside the switch statement
+    //case adventurer:
+    //  while(drawntreasure<2){
+	//if (state->deckCount[currentPlayer] <1){//if the deck is empty we need to shuffle discard and add to deck
+	//  shuffle(currentPlayer, state);
+	//}
+	//drawCard(currentPlayer, state);
+	//cardDrawn = state->hand[currentPlayer][state->handCount[currentPlayer]-1];//top card of hand is most recently drawn card.
+	//if (cardDrawn == copper || cardDrawn == silver || cardDrawn == gold)
+	//  drawntreasure++;
+	//else{
+	//  temphand[z]=cardDrawn;
+	//  state->handCount[currentPlayer]--; //this should just remove the top card (the most recently drawn one).
+	//  z++;
+	//}
+    //  }
+    //  while(z-1>=0){
+	//state->discard[currentPlayer][state->discardCount[currentPlayer]++]=temphand[z-1]; // discard all cards in play that have been drawn
+	//z=z-1;
+    //  }
+    //  return 0;
 			
     case council_room:
       //+4 Cards
@@ -763,9 +884,10 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
       //Reset Hand
       			
       return 0;
-			
-    case gardens:
-      return -1;
+	
+	// Commenting out the Gardens card effect because of refactoring the effect outside the switch statement	
+    //case gardens:
+    //  return -1;
 			
     case mine:
       j = state->hand[currentPlayer][choice1];  //store card we will trash
@@ -827,28 +949,30 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 
       return 0;
-		
-    case smithy:
-      //+3 Cards
-      for (i = 0; i < 3; i++)
-	{
-	  drawCard(currentPlayer, state);
-	}
+	
+	// Commenting out the Smithy card effect because of refactoring the effect outside the switch statement
+    //case smithy:
+    //  //+3 Cards
+    //  for (i = 0; i < 3; i++)
+	//{
+	//  drawCard(currentPlayer, state);
+	//}
 			
-      //discard card from hand
-      discardCard(handPos, currentPlayer, state, 0);
-      return 0;
-		
-    case village:
-      //+1 Card
-      drawCard(currentPlayer, state);
+    //  //discard card from hand
+    //  discardCard(handPos, currentPlayer, state, 0);
+    //  return 0;
+	
+	// Commenting out the Village card effect because of refactoring the effect outside the switch statement
+    //case village:
+    //  //+1 Card
+    //  drawCard(currentPlayer, state);
 			
-      //+2 Actions
-      state->numActions = state->numActions + 2;
+    //  //+2 Actions
+    //  state->numActions = state->numActions + 2;
 			
-      //discard played card from hand
-      discardCard(handPos, currentPlayer, state, 0);
-      return 0;
+    //  //discard played card from hand
+    //  discardCard(handPos, currentPlayer, state, 0);
+    //  return 0;
 		
     case baron:
       state->numBuys++;//Increase buys by 1!
@@ -900,17 +1024,18 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 	    
       
       return 0;
-		
-    case great_hall:
-      //+1 Card
-      drawCard(currentPlayer, state);
+	
+	// Commenting out the Great Hall card effect because of refactoring the effect outside the switch statement
+    //case great_hall:
+    //  //+1 Card
+    //  drawCard(currentPlayer, state);
 			
-      //+1 Actions
-      state->numActions++;
+    //  //+1 Actions
+    //  state->numActions++;
 			
-      //discard card from hand
-      discardCard(handPos, currentPlayer, state, 0);
-      return 0;
+    //  //discard card from hand
+    //  discardCard(handPos, currentPlayer, state, 0);
+    //  return 0;
 		
     case minion:
       //+1 action
